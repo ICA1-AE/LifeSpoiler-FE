@@ -1,115 +1,149 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Plus } from 'lucide-react';
-import { Dream } from './types';
-import DreamTag from './DreamTag';
-import DreamInput from './DreamInput';
-import DreamDetail from './DreamDetail';
+import React, { useState } from "react";
+import { Check } from "lucide-react";
 
-interface DreamLensProps {
-  dreams: Dream[];
-  setDreams: React.Dispatch<React.SetStateAction<Dream[]>>;
-}
+export function DreamLens() {
+  const [input, setInput] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [customText, setCustomText] = useState("");
+  const [selectedOptions, setSelectedOptions] = useState({
+    custom: false,
+    suggested1: false,
+    suggested2: false,
+  });
 
-export function DreamLens({ dreams, setDreams }: DreamLensProps) {
-  const [showInput, setShowInput] = useState(false);
-  const [editingDream, setEditingDream] = useState<Dream | null>(null);
-  const [selectedDream, setSelectedDream] = useState<Dream | null>(null);
+  const handleKeyDown = async (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
 
-  const navigateBack = () => {
-    window.location.hash = '';
-  };
+      // 실제 구현시에는 여기서 백엔드 API를 호출합니다
+      try {
+        // const response = await fetch('/api/generate-suggestions', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({ dream: input })
+        // });
+        // const data = await response.json();
+        // setSuggestions(data.suggestions);
 
-  const handleAddDream = (dream: string, future: string, action: string) => {
-    if (editingDream) {
-      setDreams(prev => prev.map(d => 
-        d.id === editingDream.id 
-          ? { ...d, dream, future, action }
-          : d
-      ));
-      setEditingDream(null);
-    } else {
-      setDreams(prev => [...prev, {
-        id: Date.now().toString(),
-        dream,
-        future,
-        action
-      }]);
+        // 백엔드 연동 전 테스트용 더미 데이터
+        setSuggestions([
+          `${input}을(를) 위한 첫 번째 제안사항입니다.`,
+          `${input}을(를) 위한 두 번째 제안사항입니다.`,
+        ]);
+      } catch (error) {
+        console.error("Failed to fetch suggestions:", error);
+      }
     }
-    setShowInput(false);
   };
 
-  const handleEditDream = (dream: Dream) => {
-    setEditingDream(dream);
-    setSelectedDream(null);
-    setShowInput(true);
-  };
-
-  const handleDeleteDream = (id: string) => {
-    setDreams(prev => prev.filter(d => d.id !== id));
-    setSelectedDream(null);
-  };
-
-  const handleViewDream = (dream: Dream) => {
-    setSelectedDream(dream);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const formData = {
+      dream: input,
+      customText: selectedOptions.custom ? customText : "",
+      selectedSuggestions: Object.entries(selectedOptions)
+        .filter(([key, value]) => value && key !== "custom")
+        .map(([key]) => suggestions[parseInt(key.slice(-1)) - 1]),
+    };
+    console.log("Form submitted:", formData);
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <button
-        onClick={navigateBack}
-        className="mb-8 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-      >
-        <ArrowLeft size={20} />
-        Back to PixStory
-      </button>
-      <div className="bg-white rounded-xl shadow-sm p-8">
-        <h2 className="text-2xl font-bold mb-8">DreamLens</h2>
-
-        <div className="flex items-start gap-2">
-          <div className="flex flex-wrap gap-2">
-            {dreams.map(dream => (
-              <DreamTag
-                key={dream.id}
-                text={dream.dream}
-                onEdit={() => handleViewDream(dream)}
-                onDelete={() => handleDeleteDream(dream.id)}
-              />
-            ))}
-          </div>
-          <button
-            onClick={() => {
-              setEditingDream(null);
-              setShowInput(true);
-            }}
-            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <Plus size={20} />
-          </button>
+    <div className="max-w-2xl mx-auto p-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="text-lg flex items-center">
+          <span>내 꿈은</span>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="border-b-2 border-gray-300 focus:border-blue-500 outline-none px-2 py-1 mx-2 flex-1"
+            placeholder="꿈을 입력하고 Enter를 누르세요"
+          />
+          <span>입니다.</span>
         </div>
 
-        {showInput && (
-          <DreamInput
-            initialDream={editingDream?.dream}
-            initialFuture={editingDream?.future}
-            initialAction={editingDream?.action}
-            onConfirm={handleAddDream}
-            onClose={() => {
-              setShowInput(false);
-              setEditingDream(null);
-            }}
-          />
+        {suggestions.length > 0 && (
+          <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={selectedOptions.custom}
+                  onChange={(e) =>
+                    setSelectedOptions((prev) => ({
+                      ...prev,
+                      custom: e.target.checked,
+                    }))
+                  }
+                  className="hidden"
+                />
+                <div
+                  className={`w-5 h-5 border-2 rounded flex items-center justify-center
+                  ${
+                    selectedOptions.custom
+                      ? "bg-blue-500 border-blue-500"
+                      : "border-gray-300"
+                  }`}
+                >
+                  {selectedOptions.custom && (
+                    <Check size={16} className="text-white" />
+                  )}
+                </div>
+                <span>직접 적기</span>
+              </label>
+              {selectedOptions.custom && (
+                <input
+                  type="text"
+                  value={customText}
+                  onChange={(e) => setCustomText(e.target.value)}
+                  className="flex-1 border-2 border-gray-300 rounded p-2 focus:border-blue-500 outline-none"
+                  placeholder="직접 입력해주세요"
+                />
+              )}
+            </div>
+
+            {suggestions.map((suggestion, index) => (
+              <label key={index} className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={selectedOptions[`suggested${index + 1}`]}
+                  onChange={(e) =>
+                    setSelectedOptions((prev) => ({
+                      ...prev,
+                      [`suggested${index + 1}`]: e.target.checked,
+                    }))
+                  }
+                  className="hidden"
+                />
+                <div
+                  className={`w-5 h-5 border-2 rounded flex items-center justify-center
+                  ${
+                    selectedOptions[`suggested${index + 1}`]
+                      ? "bg-blue-500 border-blue-500"
+                      : "border-gray-300"
+                  }`}
+                >
+                  {selectedOptions[`suggested${index + 1}`] && (
+                    <Check size={16} className="text-white" />
+                  )}
+                </div>
+                <span>{suggestion}</span>
+              </label>
+            ))}
+          </div>
         )}
 
-        {selectedDream && (
-          <DreamDetail
-            dream={selectedDream.dream}
-            future={selectedDream.future}
-            action={selectedDream.action}
-            onClose={() => setSelectedDream(null)}
-            onEdit={() => handleEditDream(selectedDream)}
-          />
+        {suggestions.length > 0 && (
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white rounded-lg py-3 px-4 hover:bg-blue-600 transition-colors"
+          >
+            Create DreamLens
+          </button>
         )}
-      </div>
+      </form>
     </div>
   );
 }
