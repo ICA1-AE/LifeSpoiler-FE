@@ -85,13 +85,41 @@ export function DreamLens() {
 
         {showInput && (
           <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
-            <span className="text-lg flex justify-center min-w-[200px]">
+            <span className="text-lg flex justify-center min-w-[150px]">
               {input}
               {getParticle(input)} 되어서
             </span>
             <div className="space-y-3 w-full ml-10">
               {suggestions.length > 0 && (
                 <>
+                  {suggestions.map((suggestion, index) => (
+                    <label key={index} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedOptions[`suggested${index + 1}`]}
+                        onChange={(e) =>
+                          setSelectedOptions((prev) => ({
+                            ...prev,
+                            [`suggested${index + 1}`]: e.target.checked,
+                          }))
+                        }
+                        className="hidden"
+                      />
+                      <div
+                        className={`w-5 h-5 border-2 rounded flex items-center justify-center
+                        ${
+                          selectedOptions[`suggested${index + 1}`]
+                            ? "bg-blue-500 border-blue-500"
+                            : "border-gray-300"
+                        }`}
+                      >
+                        {selectedOptions[`suggested${index + 1}`] && (
+                          <Check size={16} className="text-white" />
+                        )}
+                      </div>
+                      <span>{suggestion}</span>
+                    </label>
+                  ))}
                   <div className="flex items-center space-x-2">
                     <label className="flex items-center space-x-2">
                       <input
@@ -129,35 +157,6 @@ export function DreamLens() {
                       />
                     )}
                   </div>
-
-                  {suggestions.map((suggestion, index) => (
-                    <label key={index} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedOptions[`suggested${index + 1}`]}
-                        onChange={(e) =>
-                          setSelectedOptions((prev) => ({
-                            ...prev,
-                            [`suggested${index + 1}`]: e.target.checked,
-                          }))
-                        }
-                        className="hidden"
-                      />
-                      <div
-                        className={`w-5 h-5 border-2 rounded flex items-center justify-center
-                        ${
-                          selectedOptions[`suggested${index + 1}`]
-                            ? "bg-blue-500 border-blue-500"
-                            : "border-gray-300"
-                        }`}
-                      >
-                        {selectedOptions[`suggested${index + 1}`] && (
-                          <Check size={16} className="text-white" />
-                        )}
-                      </div>
-                      <span>{suggestion}</span>
-                    </label>
-                  ))}
                 </>
               )}
             </div>
