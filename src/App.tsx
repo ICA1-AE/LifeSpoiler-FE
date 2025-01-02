@@ -1,40 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import { BookOpen } from 'lucide-react';
-import PixStory from './components/PixStory';
-import DreamLens from './components/DreamLens';
-import { Dream } from './components/DreamLens/types';
-import { Intro } from './components/Intro';
+import React, { useState, useEffect } from "react";
+import { BookOpen } from "lucide-react";
+import PixStory from "./components/PixStory";
+import DreamLens from "./components/DreamLens";
+import { Dream } from "./components/DreamLens/types";
+import { Intro } from "./components/Intro";
 
 function App() {
   const [images, setImages] = useState<string[]>([]);
-  const [currentView, setCurrentView] = useState<'pixstory' | 'dreamlens'>('pixstory');
+  const [currentView, setCurrentView] = useState<
+    "intro" | "pixstory" | "dreamlens"
+  >("pixstory");
   const [isEditing, setIsEditing] = useState(false);
   const [dreams, setDreams] = useState<Dream[]>(() => {
-    const savedDreams = localStorage.getItem('dreams');
+    const savedDreams = localStorage.getItem("dreams");
     return savedDreams ? JSON.parse(savedDreams) : [];
   });
 
   useEffect(() => {
     const handleHashChange = () => {
-      const isDreamLens = window.location.hash === '#dreamlens';
-      setCurrentView(isDreamLens ? 'dreamlens' : 'pixstory');
+      const isDreamLens = window.location.hash === "#dreamlens";
+      setCurrentView(isDreamLens ? "dreamlens" : "pixstory");
       if (!isDreamLens) {
         setIsEditing(false);
       }
     };
 
-    window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener("hashchange", handleHashChange);
     handleHashChange();
 
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('dreams', JSON.stringify(dreams));
+    localStorage.setItem("dreams", JSON.stringify(dreams));
   }, [dreams]);
 
   const handleImageUpload = (newImage: string) => {
-    setImages(prev => [...prev, newImage]);
+    setImages((prev) => [...prev, newImage]);
   };
 
   const handleReorder = (newOrder: string[]) => {
@@ -42,7 +44,7 @@ function App() {
   };
 
   const handleImageDelete = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+    setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleStartStory = () => {
@@ -55,7 +57,7 @@ function App() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-center">
           <button
             onClick={() => {
-              setCurrentView('intro');
+              setCurrentView("intro");
               setImages([]);
               setIsEditing(false);
             }}
@@ -73,11 +75,8 @@ function App() {
         </div>
       </header>
       <main className="container mx-auto px-4 py-8">
-        {currentView === 'dreamlens' ? (
-          <DreamLens
-            dreams={dreams}
-            setDreams={setDreams}
-          />
+        {currentView === "dreamlens" ? (
+          <DreamLens dreams={dreams} setDreams={setDreams} />
         ) : images.length === 0 && !isEditing ? (
           <Intro onStartStory={handleStartStory} />
         ) : (
