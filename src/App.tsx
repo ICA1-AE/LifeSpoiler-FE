@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { BookOpen } from "lucide-react";
 import PixStory from "./components/PixStory";
 import DreamLens from "./components/DreamLens";
-import { Dream } from "./components/DreamLens/types";
 import { Intro } from "./components/Intro";
 
 function App() {
@@ -11,10 +10,6 @@ function App() {
     "intro" | "pixstory" | "dreamlens"
   >("pixstory");
   const [isEditing, setIsEditing] = useState(false);
-  const [dreams, setDreams] = useState<Dream[]>(() => {
-    const savedDreams = localStorage.getItem("dreams");
-    return savedDreams ? JSON.parse(savedDreams) : [];
-  });
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -30,10 +25,6 @@ function App() {
 
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem("dreams", JSON.stringify(dreams));
-  }, [dreams]);
 
   const handleImageUpload = (newImage: string) => {
     setImages((prev) => [...prev, newImage]);
@@ -76,7 +67,7 @@ function App() {
       </header>
       <main className="container mx-auto px-4 py-8">
         {currentView === "dreamlens" ? (
-          <DreamLens dreams={dreams} setDreams={setDreams} />
+          <DreamLens />
         ) : images.length === 0 && !isEditing ? (
           <Intro onStartStory={handleStartStory} />
         ) : (

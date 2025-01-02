@@ -3,15 +3,26 @@ import { Check } from "lucide-react";
 
 export function DreamLens() {
   const [input, setInput] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [customText, setCustomText] = useState("");
-  const [selectedOptions, setSelectedOptions] = useState({
+  interface SelectedOptions {
+    custom: boolean;
+    [key: string]: boolean;
+  }
+
+  const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({
     custom: false,
     suggested1: false,
     suggested2: false,
   });
 
-  const handleKeyDown = async (e) => {
+  interface FormData {
+    dream: string;
+    customText: string;
+    selectedSuggestions: string[];
+  }
+
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
 
@@ -36,9 +47,9 @@ export function DreamLens() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = {
+    const formData: FormData = {
       dream: input,
       customText: selectedOptions.custom ? customText : "",
       selectedSuggestions: Object.entries(selectedOptions)
