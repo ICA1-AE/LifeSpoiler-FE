@@ -8,14 +8,20 @@ function App() {
   const [images, setImages] = useState<string[]>([]);
   const [currentView, setCurrentView] = useState<
     "intro" | "pixstory" | "dreamlens"
-  >("pixstory");
+  >("intro");
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     const handleHashChange = () => {
-      const isDreamLens = window.location.hash === "#dreamlens";
-      setCurrentView(isDreamLens ? "dreamlens" : "pixstory");
-      if (!isDreamLens) {
+      const hash = window.location.hash;
+      if (hash === "#dreamlens" || hash === "dreamlens") {
+        setCurrentView("dreamlens");
+      } else if (hash === "#pixstory" || hash === "pixstory") {
+        setCurrentView("pixstory");
+      } else {
+        setCurrentView("intro");
+      }
+      if (hash !== "#dreamlens") {
         setIsEditing(false);
       }
     };
@@ -40,6 +46,7 @@ function App() {
 
   const handleStartStory = () => {
     setIsEditing(true);
+    setCurrentView("pixstory");
   };
 
   return (
@@ -66,20 +73,30 @@ function App() {
         </div>
       </header>
       <main className="container mx-auto px-4 py-8">
-        {currentView === "dreamlens" ? (
-          <DreamLens />
-        ) : images.length === 0 && !isEditing ? (
-          <Intro onStartStory={handleStartStory} />
-        ) : (
-          <PixStory
-            images={images}
-            onImageUpload={handleImageUpload}
-            onImageDelete={handleImageDelete}
-            onReorder={handleReorder}
-            isEditing={isEditing}
-            onEditingChange={setIsEditing}
-          />
-        )}
+        {(() => {
+          if (currentView === "dreamlens") {
+            console.log("DreamLens");
+            return <DreamLens />;
+          } else if (currentView === "intro") {
+            console.log("Intro");
+            return <Intro onStartStory={handleStartStory} />;
+          } else if (currentView === "pixstory") {
+            console.log("PixStory");
+            return (
+              <PixStory
+                images={images}
+                onImageUpload={handleImageUpload}
+                onImageDelete={handleImageDelete}
+                onReorder={handleReorder}
+                isEditing={isEditing}
+                onEditingChange={setIsEditing}
+                onDreamLens={() => setCurrentView("dreamlens")}
+              />
+            );
+          } else {
+            return <div>Error: Unknown view</div>;
+          }
+        })()}
       </main>
     </div>
   );

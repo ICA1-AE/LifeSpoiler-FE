@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import PixStoryEditor from './PixStoryEditor';
-import PixStoryViewer from './PixStoryViewer';
+import React, { useState } from "react";
+import PixStoryEditor from "./PixStoryEditor";
+import PixStoryViewer from "./PixStoryViewer";
 
 interface PixStoryProps {
   images: string[];
@@ -9,17 +9,21 @@ interface PixStoryProps {
   onReorder: (newOrder: string[]) => void;
   isEditing: boolean;
   onEditingChange: (isEditing: boolean) => void;
+  onDreamLens: () => void;
 }
 
-function PixStory({ 
-  images, 
-  onImageUpload, 
-  onImageDelete, 
+function PixStory({
+  images,
+  onImageUpload,
+  onImageDelete,
   onReorder,
   isEditing,
-  onEditingChange
+  onEditingChange,
+  onDreamLens,
 }: PixStoryProps) {
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
+    null
+  );
 
   const handleCreatePixstory = () => {
     onEditingChange(false);
@@ -43,6 +47,7 @@ function PixStory({
     <PixStoryViewer
       images={images}
       onEdit={handleEditPixstory}
+      onDreamLens={onDreamLens}
     />
   );
 }
