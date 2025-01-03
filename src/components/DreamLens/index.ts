@@ -1,1 +1,2 @@
-export { DreamLens as default } from './DreamLens';
+export { DreamLens } from "./DreamLens";
+export type { FormData, SelectedOptions } from "./types";
