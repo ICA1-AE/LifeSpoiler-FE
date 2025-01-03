@@ -1,6 +1,7 @@
 import React from "react";
 import { BookOpen } from "lucide-react";
 import { FormData } from "./types";
+import { getSubjectParticle, getObjectParticle } from "../../utils/attatchParticle";
 
 interface DreamLensViewerProps {
   data: FormData;
@@ -8,12 +9,6 @@ interface DreamLensViewerProps {
 }
 
 export function DreamLensViewer({ data, onEdit }: DreamLensViewerProps) {
-  const getParticle = (word: string) => {
-    const lastChar = word.charAt(word.length - 1);
-    const lastCharCode = lastChar.charCodeAt(0);
-    const isConsonantEnding = (lastCharCode - 0xac00) % 28 !== 0;
-    return isConsonantEnding ? "이" : "가";
-  };
 
   return (
     <div className="relative">
@@ -28,7 +23,7 @@ export function DreamLensViewer({ data, onEdit }: DreamLensViewerProps) {
         {/* Header */}
         <div className="bg-blue-500 p-6 text-white">
           <h1 className="text-2xl font-bold">
-            {data.dream}{getParticle(data.dream)} 된 미래의 모습입니다.
+            {data.dream}{getSubjectParticle(data.dream)} 된 미래의 모습입니다.
           </h1>
         </div>
 

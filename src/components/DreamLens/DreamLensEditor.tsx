@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Check, Book } from "lucide-react";
 import { FormData, SelectedOptions, EditorState } from "./types";
+import { getSubjectParticle, getObjectParticle } from "../../utils/attatchParticle";
 
 interface DreamLensEditorProps {
   onSubmit: (data: FormData, currentState: EditorState) => void;
@@ -13,13 +14,6 @@ export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps
   const [customText, setCustomText] = useState(initialState.customText);
   const [showInput, setShowInput] = useState(initialState.suggestions.length > 0);
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>(initialState.selectedOptions);
-
-  const getParticle = (word: string) => {
-    const lastChar = word.charAt(word.length - 1);
-    const lastCharCode = lastChar.charCodeAt(0);
-    const isConsonantEnding = (lastCharCode - 0xac00) % 28 !== 0;
-    return isConsonantEnding ? "이" : "가";
-  };
 
   useEffect(() => {
     // 초기 상태에 제안사항이 있으면 바로 보여주기
@@ -107,7 +101,7 @@ export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps
           <div className="flex items-center space-x-2 mb-4">
             <span className="text-lg">
               {input}
-              {getParticle(input)} 되어서
+              {getSubjectParticle(input)} 되어서
             </span>
           </div>
 
