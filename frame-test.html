@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>코딩네컷</title>
+    <style>
+        /* 폰트 적용을 위한 코드 */
+        @font-face {
+            font-family: "testfont";
+            src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2202-2@1.0/LeeSeoyun.woff") format("woff");
+            font-weight: normal;
+            font-style: normal;
+        }
+        body {
+            font-family: "testfont";
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            background-image: url("./background.png");
+        }
+        .container {
+            width: 390px;
+            background-color: #ff9d73;
+            height: 100%;
+        }
+        .photos {
+            margin-top: 30px;
+        }
+        .photo-frame {
+            background-color: white;
+            margin: 15px 20px;
+            height: 200px;
+            background-size: cover;
+            position: relative;
+        }
+        .footer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .f-title {
+            font-size: 25px;
+            font-weight: 900;
+            color: white;
+        }
+        .f-date {
+            font-size: 15px;
+            font-weight: 500;
+            color: white;
+        }
+        #img1 {
+            background-image: url("./img1.jpeg");
+        }
+        
+        #img2 {
+            background-image: url("./img2.jpg");
+        }
+        
+        #img3 {
+            background-image: url("./img3.jpeg");
+        }
+        
+        #img4 {
+            background-image: url("./img4.jpg");
+        }
+        .photo_description {
+            color: white;
+            background-color: black;
+        
+            width: fit-content;
+            padding: 0 20px;
+            margin-bottom: 10px;
+        
+            border-radius: 10px;
+
+            position: absolute;
+            bottom: 0;
+            transform: translate(-50%);
+            left: 50%;
+        }
+
+    </style>
+</head>
+
+<body>
+   <div class="container">
+        <div class="photos">
+            <div id="img1" class="photo-frame">
+                <span id="desc1" class="photo_description">
+                    나쁜 도둑을 잡는 경찰
+                </span>
+            </div>
+            <div id="img2" class="photo-frame">
+                <span id="desc2" class="photo_description">
+                    교통정리를 하는 경찰
+                </span>
+            </div>
+            <div id="img3" class="photo-frame">
+                <span id="desc3" class="photo_description">
+                    길을 잃은 어린이를 도와주는 경찰
+                </span>
+            </div>
+            <div id="img4" class="photo-frame">
+                <span id="desc4" class="photo_description">
+                    사건을 분석하는 경찰
+                </span>
+            </div>
+        </div>
+        <div class="footer">
+            <p class="f-title">Dream Lens</p> <!-- 문구 직접 넣는걸로 수정해보기 -->
+            <p class="f-date">2025.01.02</p> <!-- 자바스크립트나 머 다른걸로 현재 날짜 가져오는걸로 변경하기  -->
+        </div>
+   </div>
+</body>
+
+</html>
