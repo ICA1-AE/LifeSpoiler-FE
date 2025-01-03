@@ -10,6 +10,10 @@ const ImageInterpolation = () => {
   const [error, setError] = useState<string>('');
   const [showFlipBook, setShowFlipBook] = useState(false);
 
+  const mockData: InterpolationResponse = {
+    interpolated_images: Array.from({ length: 50 }, (_, i) => `/mock/mock${i + 1}.jpg`),
+  };
+
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setFiles(Array.from(e.target.files));
@@ -21,25 +25,27 @@ const ImageInterpolation = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
+  
     try {
-      const formData = new FormData();
-      files.forEach(file => {
-        formData.append('files', file);
-      });
-
-      const response = await fetch('http://localhost:8000/interpolate/', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error('Upload failed');
-
+        const formData = new FormData();
+        files.forEach(file => {
+            formData.append('files', file);
+        });
+        // 실제 백엔드 호출
+        const response = await fetch('http://localhost:8000/interpolate/', {
+            method: 'POST',
+            body: formData,
+        });
+  
+      if (!response.ok) throw new Error('Backend unavailable');
+  
       const data: InterpolationResponse = await response.json();
-      setImages(data.interpolated_images);
+      setImages(data.interpolated_images.map(img => `http://localhost:8000${img}`));
       setShowFlipBook(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error occurred');
+    } catch {
+      // 백엔드 호출 실패 시 mock 데이터 사용
+      setImages(mockData.interpolated_images);
+      setShowFlipBook(true);
     } finally {
       setLoading(false);
     }
@@ -71,21 +77,7 @@ const ImageInterpolation = () => {
         <div className="text-red-500 mb-4">{error}</div>
       )}
 
-      {showFlipBook ? (
-        <FlipBook images={images} />
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {images.map((image, index) => (
-            <div key={index} className="aspect-square">
-              <img
-                src={`http://localhost:8000${image}`}
-                alt={`Interpolated ${index + 1}`}
-                className="w-full h-full object-cover rounded shadow-md hover:shadow-lg transition-shadow"
-              />
-            </div>
-          ))}
-        </div>
-      )}
+      {showFlipBook && <FlipBook images={images} />}
     </div>
   );
 };
