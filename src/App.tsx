@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BookOpen } from "lucide-react";
 import PixStory from "./components/PixStory";
-import { DreamLens } from "./components/DreamLens";
+import DreamLens from "./components/DreamLens";
 import { Intro } from "./components/Intro";
 
 function App() {

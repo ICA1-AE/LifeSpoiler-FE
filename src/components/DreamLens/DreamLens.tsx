@@ -3,7 +3,7 @@ import { DreamLensEditor } from "./DreamLensEditor";
 import { DreamLensViewer } from "./DreamLensViewer";
 import { FormData, EditorState } from "./types";
 
-export function DreamLens() {
+function DreamLens() {
   const [isEditing, setIsEditing] = useState(true);
   const [editorState, setEditorState] = useState<EditorState>({
     input: "",
@@ -39,3 +39,5 @@ export function DreamLens() {
     </div>
   );
 }
+
+export default DreamLens;
