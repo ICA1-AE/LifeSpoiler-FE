@@ -1,6 +1,6 @@
 import React from 'react';
 import { BookOpen } from 'lucide-react';
-import ImageUploadList from '../ImageUploadList';
+import ImageUploadList from '../Image/ImageUploadList';
 
 interface PixStoryEditorProps {
   images: string[];

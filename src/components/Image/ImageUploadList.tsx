@@ -13,7 +13,7 @@ import {
   sortableKeyboardCoordinates,
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
-import ImageUploader from './Image/ImageUploader';
+import ImageUploader from './ImageUploader';
 import { DraggableImage } from './DraggableImage';
 
 interface ImageUploadListProps {
