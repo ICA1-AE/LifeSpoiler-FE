@@ -20,7 +20,7 @@ const FlipBook = ({ images }: FlipBookProps) => {
           if (prev + 1 >= images.length) {
             setIsPlaying(false);
             setIsFinished(true);
-            return prev;
+            return images.length - 1
           }
           return prev + 1;
         });
