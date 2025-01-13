@@ -1,33 +1,41 @@
 import React from "react";
-import { BookOpen } from "lucide-react";
+import { Pencil, Book, BookOpen } from "lucide-react";
 import { FormData } from "./types";
-import { getSubjectParticle, getObjectParticle } from "../../utils/attatchParticle";
+import { getSubjectParticle } from "../../utils/attatchParticle";
 
 interface DreamLensViewerProps {
   data: FormData;
   onEdit: () => void;
+  onFlipBook: () => void;
 }
 
-export function DreamLensViewer({ data, onEdit }: DreamLensViewerProps) {
-
+export function DreamLensViewer({ data, onEdit, onFlipBook }: DreamLensViewerProps) {
   return (
     <div className="relative">
-      <button
-        onClick={onEdit}
-        className="absolute top-0 right-0 bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600 transition-colors flex items-center space-x-2"
-      >
-        <span>편집하기</span>
-      </button>
+      <div className="absolute top-4 right-4 flex flex-col gap-2">
+        <button
+          onClick={onEdit}
+          className="bg-white text-gray-700 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 transition-colors flex items-center gap-2"
+        >
+          <Pencil size={16} />
+          Edit DreamLens
+        </button>
+        <button
+          onClick={onFlipBook}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-indigo-700 transition-colors flex items-center gap-2"
+        >
+          <Book size={16} />
+          FlipBook
+        </button>
+      </div>
 
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        {/* Header */}
         <div className="bg-blue-500 p-6 text-white">
           <h1 className="text-2xl font-bold">
             {data.dream}{getSubjectParticle(data.dream)} 된 미래의 모습입니다.
           </h1>
         </div>
 
-        {/* Content */}
         <div className="p-6 space-y-6">
           {data.selectedSuggestions.map((suggestion, index) => (
             <div key={index} className="flex gap-6 items-center bg-gray-50 p-4 rounded-lg">

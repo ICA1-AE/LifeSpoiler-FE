@@ -12,8 +12,6 @@ function App() {
   >("intro");
   const [isEditing, setIsEditing] = useState(false);
 
-  
-
   const handleImageUpload = (newImage: string) => {
     setImages((prev) => [...prev, newImage]);
   };
@@ -52,24 +50,15 @@ function App() {
             <BookOpen className="text-indigo-600 group-hover:scale-110 transition-transform" />
             Life Spoiler
           </button>
-          <button
-            onClick={() => setCurrentView("flipbook")}
-            className="mb-6 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors"
-          >
-            Flip Book
-          </button>
         </div>
       </header>
       <main className="container mx-auto px-4 py-8">
         {(() => {
           if (currentView === "dreamlens") {
-            console.log("DreamLens");
-            return <DreamLens />;
+            return <DreamLens onFlipBook={() => setCurrentView("flipbook")} />;
           } else if (currentView === "intro") {
-            console.log("Intro");
             return <Intro onStartStory={handleStartStory} />;
           } else if (currentView === "pixstory") {
-            console.log("PixStory");
             return (
               <PixStory
                 images={images}
@@ -81,8 +70,7 @@ function App() {
                 onDreamLens={() => setCurrentView("dreamlens")}
               />
             );
-          } else if (currentView === "flipbook") { 
-            console.log("FlipBook");
+          } else if (currentView === "flipbook") {
             return <ImageInterpolation />;
           } else {
             return <div>Error: Unknown view</div>;

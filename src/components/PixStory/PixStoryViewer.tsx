@@ -1,14 +1,16 @@
 import React from "react";
 import { Pencil, Sparkles } from "lucide-react";
 import PixStorySection from "./PixStorySection";
+import type { PixStoryData } from "./types";
 
 interface PixStoryViewerProps {
   images: string[];
+  storyData: PixStoryData;
   onEdit: () => void;
   onDreamLens: () => void;
 }
 
-function PixStoryViewer({ images, onEdit, onDreamLens }: PixStoryViewerProps) {
+function PixStoryViewer({ images, storyData, onEdit, onDreamLens }: PixStoryViewerProps) {
   return (
     <div className="relative">
       <div className="absolute top-4 right-4 flex gap-2">
@@ -27,7 +29,10 @@ function PixStoryViewer({ images, onEdit, onDreamLens }: PixStoryViewerProps) {
           DreamLens
         </button>
       </div>
-      <PixStorySection images={images} />
+      <PixStorySection 
+        images={images} 
+        storyData={storyData}
+      />
     </div>
   );
 }

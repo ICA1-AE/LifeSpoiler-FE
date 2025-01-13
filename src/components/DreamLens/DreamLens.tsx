@@ -3,7 +3,11 @@ import { DreamLensEditor } from "./DreamLensEditor";
 import { DreamLensViewer } from "./DreamLensViewer";
 import { FormData, EditorState } from "./types";
 
-function DreamLens() {
+interface DreamLensProps {
+  onFlipBook: () => void;
+}
+
+function DreamLens({ onFlipBook }: DreamLensProps) {
   const [isEditing, setIsEditing] = useState(true);
   const [editorState, setEditorState] = useState<EditorState>({
     input: "",
@@ -33,7 +37,8 @@ function DreamLens() {
       ) : (
         <DreamLensViewer 
           data={formData!} 
-          onEdit={() => setIsEditing(true)} 
+          onEdit={() => setIsEditing(true)}
+          onFlipBook={onFlipBook}
         />
       )}
     </div>
