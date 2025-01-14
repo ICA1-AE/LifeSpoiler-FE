@@ -1,18 +1,19 @@
-import React from "react";
-import { Pencil, Book, BookOpen } from "lucide-react";
-import { FormData } from "./types";
-import { getSubjectParticle } from "../../utils/attatchParticle";
+import React from 'react';
+import { Pencil, Sparkles } from 'lucide-react';
+import type { DreamLensData } from './types';
 
 interface DreamLensViewerProps {
-  data: FormData;
+  data: DreamLensData;
   onEdit: () => void;
-  onFlipBook: () => void;
+  onDreamLens: () => void;
 }
 
-export function DreamLensViewer({ data, onEdit, onFlipBook }: DreamLensViewerProps) {
+export function DreamLensViewer({ data, onEdit, onDreamLens }: DreamLensViewerProps) {
+  const { userName, genre, jobTitle, story } = data;
+
   return (
     <div className="relative">
-      <div className="absolute top-4 right-4 flex flex-col gap-2">
+      <div className="absolute top-4 right-4 flex gap-2">
         <button
           onClick={onEdit}
           className="bg-white text-gray-700 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 transition-colors flex items-center gap-2"
@@ -21,52 +22,32 @@ export function DreamLensViewer({ data, onEdit, onFlipBook }: DreamLensViewerPro
           Edit DreamLens
         </button>
         <button
-          onClick={onFlipBook}
+          onClick={onDreamLens}
           className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-indigo-700 transition-colors flex items-center gap-2"
         >
-          <Book size={16} />
-          FlipBook
+          <Sparkles size={16} />
+          DreamLens
         </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="bg-blue-500 p-6 text-white">
-          <h1 className="text-2xl font-bold">
-            {data.dream}{getSubjectParticle(data.dream)} 된 미래의 모습입니다.
-          </h1>
-        </div>
+      <div className="bg-white rounded-xl shadow-sm p-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center space-y-4 mb-8">
+            <h2 className="text-2xl font-bold">
+              {userName}님의 {genre} 이야기
+            </h2>
+            <p className="text-lg text-gray-600">
+              미래의 {jobTitle}을 향한 여정
+            </p>
+          </div>
 
-        <div className="p-6 space-y-6">
-          {data.selectedSuggestions.map((suggestion, index) => (
-            <div key={index} className="flex gap-6 items-center bg-gray-50 p-4 rounded-lg">
-              <div className="w-1/3 aspect-video bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                <BookOpen size={48} className="text-gray-400" />
-              </div>
-              <div className="w-2/3">
-                <p className="text-gray-600 leading-relaxed">
-                  {suggestion} 이를 위해서는 지속적인 노력과 실천이 필요합니다. 
-                  매일 조금씩 진전을 이루다 보면 어느새 목표에 한걸음 더 가까워져 있을 것입니다. 
-                  중간에 어려움이 있더라도 초심을 잃지 않고 꾸준히 노력한다면 반드시 이루어질 것입니다.
-                </p>
-              </div>
-            </div>
-          ))}
-
-          {data.customText && (
-            <div className="flex gap-6 items-center bg-gray-50 p-4 rounded-lg">
-              <div className="w-1/3 aspect-video bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                <BookOpen size={48} className="text-gray-400" />
-              </div>
-              <div className="w-2/3">
-                <p className="text-gray-600 leading-relaxed">
-                  {data.customText} 이러한 개인적인 목표를 달성하기 위해서는 
-                  구체적인 계획과 실천 전략이 필요합니다. 한 걸음 한 걸음 
-                  차근차근 나아간다면, 분명 원하는 미래에 도달할 수 있을 것입니다. 
-                  작은 성공들이 모여 큰 변화를 만들어낼 것입니다.
-                </p>
-              </div>
-            </div>
-          )}
+          <div className="prose prose-lg max-w-none">
+            {story.split('\n').map((paragraph, index) => (
+              <p key={index} className="text-gray-700 leading-relaxed">
+                {paragraph}
+              </p>
+            ))}
+          </div>
         </div>
       </div>
     </div>

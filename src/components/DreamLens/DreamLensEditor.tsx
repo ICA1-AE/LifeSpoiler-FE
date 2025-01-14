@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Check, Book } from "lucide-react";
-import { FormData, SelectedOptions, EditorState } from "./types";
-import { getSubjectParticle, getObjectParticle } from "../../utils/attatchParticle";
+import React, { useState } from "react";
+import { Check, Book, Loader2, Search } from "lucide-react";
+import { FormData, SelectedOptions, EditorState, JobActionsResponse } from "./types";
 
 interface DreamLensEditorProps {
   onSubmit: (data: FormData, currentState: EditorState) => void;
@@ -9,73 +8,92 @@ interface DreamLensEditorProps {
 }
 
 export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps) {
-  const [input, setInput] = useState(initialState.input);
-  const [suggestions, setSuggestions] = useState<string[]>(initialState.suggestions);
   const [customText, setCustomText] = useState(initialState.customText);
-  const [showInput, setShowInput] = useState(initialState.suggestions.length > 0);
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>(initialState.selectedOptions);
+  const [jobTitle, setJobTitle] = useState(initialState.jobTitle || '');
+  const [jobActions, setJobActions] = useState<string[]>(initialState.jobActions || []);
+  const [isLoadingActions, setIsLoadingActions] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // 초기 상태에 제안사항이 있으면 바로 보여주기
-    if (initialState.suggestions.length > 0) {
-      setSuggestions(initialState.suggestions);
-      setShowInput(true);
-    }
-  }, [initialState]);
-
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && input.trim() !== "") {
-      e.preventDefault();
-      setShowInput(true);
-      // 실제 구현시에는 여기서 백엔드 API를 호출합니다
-      const newSuggestions = [
-        `${input}을(를) 위한 첫 번째 제안사항입니다.`,
-        `${input}을(를) 위한 두 번째 제안사항입니다.`,
-      ];
-      setSuggestions(newSuggestions);
+  const handleJobTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value.length <= 10) {
+      setJobTitle(value);
+      // Reset everything when job title changes
+      setJobActions([]);
+      setSelectedOptions({});
+      setCustomText('');
+      setError(null);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newInput = e.target.value;
-    setInput(newInput);
-    if (newInput !== initialState.input) {
-      setSuggestions([]);
-      setShowInput(false);
-      setSelectedOptions({
-        custom: false,
-        suggested1: false,
-        suggested2: false,
+  const fetchJobActions = async () => {
+    if (!jobTitle.trim()) {
+      setError('직업을 입력해주세요.');
+      return;
+    }
+
+    setIsLoadingActions(true);
+    setError(null);
+
+    try {
+      const response = await fetch('http://localhost:8600/generate-job-actions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ job_title: jobTitle }),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch job actions');
+      }
+
+      const data: JobActionsResponse = await response.json();
+      setJobActions(data.actions);
+      // Reset selections when new actions are fetched
+      setSelectedOptions({});
+      setCustomText('');
+    } catch (err) {
+      setError('직업 관련 행동을 가져오는데 실패했습니다.');
+      console.error(err);
+    } finally {
+      setIsLoadingActions(false);
     }
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    const hasSelectedSuggestions = Object.entries(selectedOptions).some(
-      ([key, value]) => value && key !== "custom"
-    );
-    const hasCustomText = selectedOptions.custom && customText.trim() !== "";
-    
-    if (!hasSelectedSuggestions && !hasCustomText) {
-      alert("최소한 하나의 항목을 선택하거나 직접 입력해주세요.");
+    const selectedActions = Object.entries(selectedOptions)
+      .filter(([key, value]) => value)
+      .map(([key]) => {
+        if (key === 'custom') {
+          return customText;
+        }
+        const index = parseInt(key.replace('action', ''));
+        return jobActions[index];
+      })
+      .filter(action => action);
+
+    if (selectedActions.length === 0) {
+      alert("최소한 하나의 행동을 선택해주세요.");
       return;
     }
 
     const formData: FormData = {
-      dream: input,
-      customText: selectedOptions.custom ? customText : "",
-      selectedSuggestions: Object.entries(selectedOptions)
-        .filter(([key, value]) => value && key !== "custom")
-        .map(([key]) => suggestions[parseInt(key.slice(-1)) - 1]),
+      dream: jobTitle,
+      customText: "",
+      selectedSuggestions: selectedActions,
     };
     
     const currentState: EditorState = {
-      input,
-      suggestions,
+      input: jobTitle,
+      suggestions: selectedActions,
       customText,
       selectedOptions,
+      jobTitle,
+      jobActions,
     };
     
     onSubmit(formData, currentState);
@@ -83,37 +101,51 @@ export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="text-lg flex items-center">
-        <span>내 꿈은</span>
-        <input
-          type="text"
-          value={input}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          className="border-b-2 border-gray-300 focus:border-blue-500 outline-none px-2 py-1 mx-4 min-w-[300px]"
-          placeholder="꿈을 입력하고 Enter를 누르세요"
-        />
-        <span>입니다.</span>
+      <div className="flex items-center gap-2">
+        <span className="text-lg">미래 나의 직업은</span>
+        <div className="relative flex items-center gap-2">
+          <input
+            type="text"
+            value={jobTitle}
+            onChange={handleJobTitleChange}
+            maxLength={10}
+            className="w-32 border-b-2 border-gray-300 focus:border-blue-500 outline-none px-2 py-1 text-center"
+            placeholder="직업 입력"
+          />
+          <button
+            type="button"
+            onClick={fetchJobActions}
+            disabled={isLoadingActions || !jobTitle.trim()}
+            className="bg-blue-500 text-white px-4 py-1.5 rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 disabled:bg-blue-300"
+          >
+            {isLoadingActions ? (
+              <Loader2 className="animate-spin" size={16} />
+            ) : (
+              <Search size={16} />
+            )}
+            Actions
+          </button>
+        </div>
+        <span className="text-lg">입니다.</span>
       </div>
 
-      {showInput && suggestions.length > 0 && (
-        <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
-          <div className="flex items-center space-x-2 mb-4">
-            <span className="text-lg">
-              {input}
-              {getSubjectParticle(input)} 되어서
-            </span>
-          </div>
+      {error && (
+        <div className="text-red-500 text-sm">{error}</div>
+      )}
 
-          {suggestions.map((suggestion, index) => (
+      {jobActions.length > 0 && (
+        <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
+          <h3 className="font-medium text-gray-700">직업 관련 행동</h3>
+          
+          {jobActions.map((action, index) => (
             <label key={index} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded-lg transition-colors">
               <input
                 type="checkbox"
-                checked={selectedOptions[`suggested${index + 1}`]}
+                checked={selectedOptions[`action${index}`]}
                 onChange={(e) =>
                   setSelectedOptions((prev) => ({
                     ...prev,
-                    [`suggested${index + 1}`]: e.target.checked,
+                    [`action${index}`]: e.target.checked,
                   }))
                 }
                 className="hidden"
@@ -121,20 +153,20 @@ export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps
               <div
                 className={`w-5 h-5 border-2 rounded flex items-center justify-center
                 ${
-                  selectedOptions[`suggested${index + 1}`]
+                  selectedOptions[`action${index}`]
                     ? "bg-blue-500 border-blue-500"
                     : "border-gray-300"
                 }`}
               >
-                {selectedOptions[`suggested${index + 1}`] && (
+                {selectedOptions[`action${index}`] && (
                   <Check size={16} className="text-white" />
                 )}
               </div>
-              <span>{suggestion}</span>
+              <span>{action}</span>
             </label>
           ))}
 
-          <div className="flex items-center space-x-2">
+          <div className="space-y-2 border-t border-gray-200 pt-4 mt-4">
             <label className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded-lg transition-colors">
               <input
                 type="checkbox"
@@ -155,24 +187,26 @@ export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps
                     : "border-gray-300"
                 }`}
               >
-                {selectedOptions.custom && <Check size={16} className="text-white" />}
+                {selectedOptions.custom && (
+                  <Check size={16} className="text-white" />
+                )}
               </div>
-              <span>직접 적기</span>
+              <span>직접 입력하기</span>
             </label>
             {selectedOptions.custom && (
               <input
                 type="text"
                 value={customText}
                 onChange={(e) => setCustomText(e.target.value)}
-                className="flex-1 border-2 border-gray-300 rounded p-2 h-8 focus:border-blue-500 outline-none"
-                placeholder="직접 입력해주세요"
+                placeholder="직업과 관련된 행동을 입력해주세요"
+                className="ml-9 w-full border-2 border-gray-300 rounded p-2 text-sm focus:border-blue-500 outline-none"
               />
             )}
           </div>
         </div>
       )}
 
-      {suggestions.length > 0 && (
+      {jobActions.length > 0 && (
         <button
           type="submit"
           className="w-full bg-blue-500 text-white rounded-lg py-3 px-4 hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
