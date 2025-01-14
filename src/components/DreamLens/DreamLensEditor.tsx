@@ -27,6 +27,12 @@ export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+    }
+  };
+
   const fetchJobActions = async () => {
     if (!jobTitle.trim()) {
       setError('직업을 입력해주세요.');
@@ -108,6 +114,7 @@ export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps
             type="text"
             value={jobTitle}
             onChange={handleJobTitleChange}
+            onKeyDown={handleKeyDown}
             maxLength={10}
             className="w-32 border-b-2 border-gray-300 focus:border-blue-500 outline-none px-2 py-1 text-center"
             placeholder="직업 입력"
@@ -198,6 +205,7 @@ export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps
                 type="text"
                 value={customText}
                 onChange={(e) => setCustomText(e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder="직업과 관련된 행동을 입력해주세요"
                 className="ml-9 w-full border-2 border-gray-300 rounded p-2 text-sm focus:border-blue-500 outline-none"
               />
