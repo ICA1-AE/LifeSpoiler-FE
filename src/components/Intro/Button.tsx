@@ -3,9 +3,10 @@ import { BookOpen } from 'lucide-react';
 
 interface StartButtonProps {
   onClick: () => void;
+  activeTab: "pixstory" | "dreamlens";
 }
 
-export function StartButton({ onClick }: StartButtonProps) {
+export function StartButton({ onClick, activeTab }: StartButtonProps) {
   return (
     <button
       onClick={onClick}
@@ -23,7 +24,7 @@ export function StartButton({ onClick }: StartButtonProps) {
         font-medium"
     >
       <BookOpen size={20} className="group-hover:animate-pulse"/>
-      Start My Story
+      {activeTab === "pixstory" ? "Start PixStory" : "Start DreamLens"}
     </button>
   );
 }

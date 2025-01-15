@@ -14,8 +14,10 @@
     "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "lucide-react": "^0.344.0",
+    "openai": "^4.28.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "recoil": "^0.7.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",

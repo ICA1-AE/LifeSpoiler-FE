@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import type { CreateStoryModalData } from './types';
 
-const GENRES = ['판타지', 'SF', '로맨스', '미스터리', '모험'];
-
 interface CreateStoryModalProps {
   onClose: () => void;
   onSubmit: (data: CreateStoryModalData) => void;
@@ -11,7 +9,6 @@ interface CreateStoryModalProps {
 
 function CreateStoryModal({ onClose, onSubmit }: CreateStoryModalProps) {
   const [userName, setUserName] = useState('');
-  const [genre, setGenre] = useState(GENRES[0]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +16,7 @@ function CreateStoryModal({ onClose, onSubmit }: CreateStoryModalProps) {
       alert('이름을 입력해주세요.');
       return;
     }
-    onSubmit({ userName, genre });
+    onSubmit({ userName });
   };
 
   return (
@@ -47,24 +44,6 @@ function CreateStoryModal({ onClose, onSubmit }: CreateStoryModalProps) {
               placeholder="이름을 입력하세요"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-          </div>
-
-          <div>
-            <label htmlFor="genre" className="block text-sm font-medium text-gray-700 mb-1">
-              장르
-            </label>
-            <select
-              id="genre"
-              value={genre}
-              onChange={(e) => setGenre(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {GENRES.map((g) => (
-                <option key={g} value={g}>
-                  {g}
-                </option>
-              ))}
-            </select>
           </div>
 
           <div className="flex gap-3 mt-6">

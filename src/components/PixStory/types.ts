@@ -4,8 +4,6 @@ export interface SelectedOptions {
 }
 
 export interface FormData {
-  characterName: string;
-  gender: string;
   genre: string;
 }
 
@@ -22,7 +20,10 @@ export interface NovelResponse {
 }
 
 export interface PixStoryData {
-  metadata: FormData | null;
+  metadata: {
+    characterName: string;
+    genre: string;
+  } | null;
   captions: { [key: number]: string };
   novel: string;
 }

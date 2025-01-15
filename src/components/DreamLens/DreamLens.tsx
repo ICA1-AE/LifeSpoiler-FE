@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { useRecoilValue } from 'recoil';
 import { DreamLensEditor } from "./DreamLensEditor";
 import { DreamLensViewer } from "./DreamLensViewer";
-import CreateStoryModal from "./CreateStoryModal";
-import type { FormData, EditorState, CreateStoryModalData, DreamLensData } from "./types";
+import { openAIKeyState, userNameState } from '../../store/atoms';
+import { generateJobActions, generateDreamLensStory } from '../../utils/openai';
+import type { FormData, EditorState, DreamLensData } from "./types";
 
 interface DreamLensProps {
   onFlipBook: () => void;
@@ -17,58 +19,68 @@ function DreamLens({ onFlipBook }: DreamLensProps) {
     selectedOptions: {
       custom: false,
     },
+    jobTitle: "",
+    jobActions: [],
   });
-  const [showModal, setShowModal] = useState(false);
   const [dreamLensData, setDreamLensData] = useState<DreamLensData | null>(null);
-  const [tempFormData, setTempFormData] = useState<FormData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const openAIKey = useRecoilValue(openAIKeyState);
+  const userName = useRecoilValue(userNameState);
 
-  const handleEditorSubmit = (data: FormData, currentState: EditorState) => {
-    setTempFormData(data);
-    setEditorState(currentState);
-    setShowModal(true);
-  };
+  const handleEditorSubmit = async (data: FormData) => {
+    if (!userName) {
+      alert("사용자 이름을 먼저 설정해주세요.");
+      return;
+    }
 
-  const handleModalSubmit = async (modalData: CreateStoryModalData) => {
-    if (!tempFormData) return;
+    if (!openAIKey) {
+      alert("OpenAI API 키를 먼저 설정해주세요.");
+      return;
+    }
 
-    setShowModal(false); // Close modal immediately
-    setIsLoading(true); // Start loading state
-
+    setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8600/generate-story', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          job_actions: tempFormData.selectedSuggestions,
-          user_name: modalData.userName,
-          genre: modalData.genre,
-          job_title: tempFormData.dream,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate story');
-      }
-
-      const result = await response.json();
+      const story = await generateDreamLensStory(
+        data.selectedSuggestions,
+        userName,
+        data.dream,
+        openAIKey
+      );
       
       setDreamLensData({
-        userName: modalData.userName,
-        genre: modalData.genre,
-        jobTitle: tempFormData.dream,
-        story: result.story,
+        userName,
+        jobTitle: data.dream,
+        story,
       });
-      
+
+      // Save the current state including all job actions
+      setEditorState(prevState => ({
+        input: data.dream,
+        suggestions: data.selectedSuggestions,
+        customText: data.customText || "",
+        selectedOptions: data.selectedOptions,
+        jobTitle: data.dream,
+        jobActions: prevState.jobActions, // Preserve all job actions, not just selected ones
+      }));
+
       setIsEditing(false);
     } catch (error) {
-      console.error('Failed to generate story:', error);
-      alert('스토리 생성에 실패했습니다. 다시 시도해주세요.');
+      console.error("Error in story creation process:", error);
+      alert(error instanceof Error ? error.message : "스토리 생성 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleJobActionsUpdate = (actions: string[]) => {
+    setEditorState(prevState => ({
+      ...prevState,
+      jobActions: actions,
+    }));
   };
 
   return (
@@ -77,20 +89,15 @@ function DreamLens({ onFlipBook }: DreamLensProps) {
         <DreamLensEditor 
           onSubmit={handleEditorSubmit} 
           initialState={editorState}
+          openAIKey={openAIKey}
           isLoading={isLoading}
+          onJobActionsUpdate={handleJobActionsUpdate}
         />
       ) : dreamLensData && (
         <DreamLensViewer 
           data={dreamLensData}
-          onEdit={() => setIsEditing(true)}
+          onEdit={handleEdit}
           onDreamLens={onFlipBook}
-        />
-      )}
-
-      {showModal && (
-        <CreateStoryModal
-          onClose={() => setShowModal(false)}
-          onSubmit={handleModalSubmit}
         />
       )}
     </>

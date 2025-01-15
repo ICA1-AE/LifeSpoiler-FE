@@ -1,6 +1,9 @@
 import React, { useState } from "react";
+import { useRecoilValue } from 'recoil';
 import PixStoryEditor from "./PixStoryEditor";
 import PixStoryViewer from "./PixStoryViewer";
+import { openAIKeyState, userNameState } from '../../store/atoms';
+import { generateImageCaption, generatePixStoryNovel } from '../../utils/openai';
 import type { FormData, PixStoryData } from "./types";
 
 interface PixStoryProps {
@@ -30,49 +33,69 @@ function PixStory({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const openAIKey = useRecoilValue(openAIKeyState);
+  const userName = useRecoilValue(userNameState);
 
   const handleCreatePixstory = async (data: FormData) => {
+    if (!userName) {
+      setError("사용자 이름을 먼저 설정해주세요.");
+      return;
+    }
+
+    if (!openAIKey) {
+      setError("OpenAI API 키를 먼저 설정해주세요.");
+      return;
+    }
+
+    if (images.length === 0) {
+      setError("이미지를 먼저 업로드해주세요.");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      const formData = new FormData();
-
-      // Convert base64 images to files
-      const imagePromises = images.map(async (base64String, index) => {
-        const response = await fetch(base64String);
-        const blob = await response.blob();
-        return new File([blob], `image${index}.jpg`, { type: "image/jpeg" });
-      });
-
-      const imageFiles = await Promise.all(imagePromises);
-      imageFiles.forEach((file) => {
-        formData.append("images", file);
-      });
-
-      // Build URL with query parameters
-      const url = new URL("http://localhost:8500/generate/");
-      url.searchParams.append("name", data.characterName);
-      url.searchParams.append("genre", data.genre);
-
-      const response = await fetch(url.toString(), {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to generate story");
+      // Generate captions for each image
+      const captions: { [key: number]: string } = {};
+      for (let i = 0; i < images.length; i++) {
+        try {
+          const caption = await generateImageCaption(images[i], openAIKey);
+          captions[i] = caption;
+          console.log(`Caption generated for image ${i + 1}:`, caption);
+        } catch (err) {
+          console.error(`Error generating caption for image ${i + 1}:`, err);
+          throw new Error(`이미지 ${i + 1}의 캡션 생성에 실패했습니다. ${err instanceof Error ? err.message : ''}`);
+        }
       }
 
-      const result = await response.json();
-      setStoryData({
-        metadata: data,
-        captions: result.captions,
-        novel: result.novel,
-      });
-      onEditingChange(false);
+      // Generate novel using captions
+      try {
+        const novel = await generatePixStoryNovel(
+          captions,
+          {
+            characterName: userName,
+            genre: data.genre,
+          },
+          openAIKey
+        );
+
+        setStoryData({
+          metadata: {
+            characterName: userName,
+            genre: data.genre,
+          },
+          captions,
+          novel,
+        });
+        onEditingChange(false);
+      } catch (err) {
+        console.error("Error generating novel:", err);
+        throw new Error(`스토리 생성에 실패했습니다. ${err instanceof Error ? err.message : ''}`);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate story");
+      console.error("Error in story creation process:", err);
+      setError(err instanceof Error ? err.message : "스토리 생성 중 오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
       setIsLoading(false);
     }

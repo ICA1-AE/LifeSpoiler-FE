@@ -10,7 +10,7 @@ interface PixStoryEditorProps {
   onImageDelete: (index: number) => void;
   onReorder: (newOrder: string[]) => void;
   onImageSelect: (index: number) => void;
-  onSave: (data: { gender: string; genre: string }) => void;
+  onSave: (data: { genre: string }) => void;
   isLoading: boolean;
   error: string | null;
 }

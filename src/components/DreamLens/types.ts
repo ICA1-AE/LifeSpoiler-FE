@@ -7,6 +7,7 @@ export interface FormData {
   dream: string;
   customText: string;
   selectedSuggestions: string[];
+  selectedOptions: SelectedOptions;
 }
 
 export interface EditorState {
@@ -18,14 +19,8 @@ export interface EditorState {
   jobActions?: string[];
 }
 
-export interface JobActionsResponse {
-  actions: string[];
-  job_title: string;
-}
-
 export interface CreateStoryModalData {
   userName: string;
-  genre: string;
 }
 
 export interface StoryResponse {
@@ -34,7 +29,6 @@ export interface StoryResponse {
 
 export interface DreamLensData {
   userName: string;
-  genre: string;
   jobTitle: string;
   story: string;
 }

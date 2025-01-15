@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 
 interface CreatePixStoryModalProps {
   onClose: () => void;
-  onSubmit: (data: { characterName: string; gender: string; genre: string }) => void;
+  onSubmit: (data: { genre: string }) => void;
 }
 
 const GENRES = [
@@ -14,20 +14,12 @@ const GENRES = [
   '모험'
 ];
 
-const GENDERS = ['남성', '여성'];
-
 function CreatePixStoryModal({ onClose, onSubmit }: CreatePixStoryModalProps) {
-  const [characterName, setCharacterName] = useState('');
-  const [gender, setGender] = useState(GENDERS[0]);
   const [genre, setGenre] = useState(GENRES[0]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!characterName.trim()) {
-      alert('주인공의 이름을 입력해주세요.');
-      return;
-    }
-    onSubmit({ characterName, gender, genre });
+    onSubmit({ genre });
     onClose();
   };
 
@@ -44,41 +36,6 @@ function CreatePixStoryModal({ onClose, onSubmit }: CreatePixStoryModalProps) {
         <h2 className="text-xl font-semibold mb-6">새로운 PixStory 만들기</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="characterName" className="block text-sm font-medium text-gray-700 mb-1">
-              주인공 이름
-            </label>
-            <input
-              type="text"
-              id="characterName"
-              value={characterName}
-              onChange={(e) => setCharacterName(e.target.value)}
-              placeholder="주인공의 이름을 입력하세요"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              성별
-            </label>
-            <div className="flex gap-4">
-              {GENDERS.map((g) => (
-                <label key={g} className="flex items-center">
-                  <input
-                    type="radio"
-                    name="gender"
-                    value={g}
-                    checked={gender === g}
-                    onChange={(e) => setGender(e.target.value)}
-                    className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                  />
-                  <span className="ml-2">{g}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
           <div>
             <label htmlFor="genre" className="block text-sm font-medium text-gray-700 mb-1">
               장르

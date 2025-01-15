@@ -1,13 +1,23 @@
-import React, { useState } from "react";
-import { Check, Book, Loader2, Search } from "lucide-react";
-import { FormData, SelectedOptions, EditorState, JobActionsResponse } from "./types";
+import React, { useState, useEffect } from "react";
+import { Check, Loader2, Search, Sparkles } from "lucide-react";
+import { FormData, SelectedOptions, EditorState } from "./types";
+import { generateJobActions } from "../../utils/openai";
 
 interface DreamLensEditorProps {
-  onSubmit: (data: FormData, currentState: EditorState) => void;
+  onSubmit: (data: FormData) => void;
   initialState: EditorState;
+  openAIKey: string;
+  isLoading?: boolean;
+  onJobActionsUpdate?: (actions: string[]) => void;
 }
 
-export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps) {
+export function DreamLensEditor({ 
+  onSubmit, 
+  initialState, 
+  openAIKey, 
+  isLoading,
+  onJobActionsUpdate 
+}: DreamLensEditorProps) {
   const [customText, setCustomText] = useState(initialState.customText);
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>(initialState.selectedOptions);
   const [jobTitle, setJobTitle] = useState(initialState.jobTitle || '');
@@ -15,11 +25,28 @@ export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps
   const [isLoadingActions, setIsLoadingActions] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Load initial job actions if they exist
+  useEffect(() => {
+    if (initialState.jobTitle && initialState.jobActions?.length > 0) {
+      setJobTitle(initialState.jobTitle);
+      setJobActions(initialState.jobActions);
+      
+      // Set selected options based on initial suggestions
+      const newSelectedOptions: SelectedOptions = { custom: false };
+      initialState.suggestions.forEach(suggestion => {
+        const index = initialState.jobActions.indexOf(suggestion);
+        if (index !== -1) {
+          newSelectedOptions[`action${index}`] = true;
+        }
+      });
+      setSelectedOptions(newSelectedOptions);
+    }
+  }, [initialState]);
+
   const handleJobTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (value.length <= 10) {
       setJobTitle(value);
-      // Reset everything when job title changes
       setJobActions([]);
       setSelectedOptions({});
       setCustomText('');
@@ -39,30 +66,24 @@ export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps
       return;
     }
 
+    if (!openAIKey) {
+      setError('OpenAI API 키를 먼저 설정해주세요.');
+      return;
+    }
+
     setIsLoadingActions(true);
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:8600/generate-job-actions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ job_title: jobTitle }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch job actions');
-      }
-
-      const data: JobActionsResponse = await response.json();
-      setJobActions(data.actions);
-      // Reset selections when new actions are fetched
+      const response = await generateJobActions(jobTitle, openAIKey);
+      const newActions = response.actions;
+      setJobActions(newActions);
       setSelectedOptions({});
       setCustomText('');
+      onJobActionsUpdate?.(newActions);
     } catch (err) {
-      setError('직업 관련 행동을 가져오는데 실패했습니다.');
-      console.error(err);
+      console.error("Error fetching job actions:", err);
+      setError(err instanceof Error ? err.message : '직업 행동을 가져오는데 실패했습니다.');
     } finally {
       setIsLoadingActions(false);
     }
@@ -72,7 +93,7 @@ export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps
     e.preventDefault();
     
     const selectedActions = Object.entries(selectedOptions)
-      .filter(([key, value]) => value)
+      .filter(([_, value]) => value)
       .map(([key]) => {
         if (key === 'custom') {
           return customText;
@@ -89,20 +110,12 @@ export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps
 
     const formData: FormData = {
       dream: jobTitle,
-      customText: "",
+      customText: customText || "",
       selectedSuggestions: selectedActions,
-    };
-    
-    const currentState: EditorState = {
-      input: jobTitle,
-      suggestions: selectedActions,
-      customText,
       selectedOptions,
-      jobTitle,
-      jobActions,
     };
     
-    onSubmit(formData, currentState);
+    onSubmit(formData);
   };
 
   return (
@@ -148,7 +161,7 @@ export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps
             <label key={index} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded-lg transition-colors">
               <input
                 type="checkbox"
-                checked={selectedOptions[`action${index}`]}
+                checked={selectedOptions[`action${index}`] || false}
                 onChange={(e) =>
                   setSelectedOptions((prev) => ({
                     ...prev,
@@ -177,7 +190,7 @@ export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps
             <label className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded-lg transition-colors">
               <input
                 type="checkbox"
-                checked={selectedOptions.custom}
+                checked={selectedOptions.custom || false}
                 onChange={(e) =>
                   setSelectedOptions((prev) => ({
                     ...prev,
@@ -217,10 +230,20 @@ export function DreamLensEditor({ onSubmit, initialState }: DreamLensEditorProps
       {jobActions.length > 0 && (
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white rounded-lg py-3 px-4 hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
+          disabled={isLoading}
+          className="w-full bg-blue-500 text-white rounded-lg py-3 px-4 hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2 disabled:bg-blue-300"
         >
-          <Book size={20} />
-          <span>Create DreamLens</span>
+          {isLoading ? (
+            <>
+              <Loader2 size={20} className="animate-spin" />
+              <span>Creating DreamLens...</span>
+            </>
+          ) : (
+            <>
+              <Sparkles size={20} />
+              <span>Create DreamLens</span>
+            </>
+          )}
         </button>
       )}
     </form>
