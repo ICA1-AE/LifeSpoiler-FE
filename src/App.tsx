@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BookOpen, Sparkles } from "lucide-react";
+import { Clapperboard, BookOpen, Wand } from "lucide-react";
 import { RecoilRoot } from 'recoil';
 import PixStory from "./components/PixStory";
 import DreamLens from "./components/DreamLens";
@@ -77,7 +77,7 @@ function App() {
                 transition-colors
               "
             >
-              <BookOpen className="text-indigo-600 group-hover:scale-110 transition-transform" />
+              <Clapperboard className="text-indigo-600 group-hover:scale-110 transition-transform" />
               Life Spoiler
             </button>
           </div>
@@ -122,7 +122,7 @@ function App() {
                   }
                 `}
               >
-                <Sparkles size={20} className="shrink-0" />
+                <Wand size={20} className="shrink-0" />
                 <div className="text-left">
                   <span className="block font-medium">DreamLens</span>
                   <span className="text-xs opacity-75">미래의 이야기</span>

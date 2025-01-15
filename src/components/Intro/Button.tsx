@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Wand } from 'lucide-react';
 
 interface StartButtonProps {
   onClick: () => void;
@@ -23,7 +23,11 @@ export function StartButton({ onClick, activeTab }: StartButtonProps) {
         flex items-center gap-3
         font-medium"
     >
-      <BookOpen size={20} className="group-hover:animate-pulse"/>
+      {activeTab === "pixstory" ? (
+        <BookOpen size={20} className="group-hover:animate-pulse"/>
+      ) : (
+        <Wand size={20} className="group-hover:animate-pulse"/>
+      )}
       {activeTab === "pixstory" ? "Start PixStory" : "Start DreamLens"}
     </button>
   );

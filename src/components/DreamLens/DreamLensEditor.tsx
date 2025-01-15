@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Check, Loader2, Search, Sparkles } from "lucide-react";
+import React, { useState } from "react";
+import { Check, Loader2, Search, Wand } from "lucide-react";
 import { FormData, SelectedOptions, EditorState } from "./types";
 import { generateJobActions } from "../../utils/openai";
 
@@ -7,16 +7,16 @@ interface DreamLensEditorProps {
   onSubmit: (data: FormData) => void;
   initialState: EditorState;
   openAIKey: string;
-  isLoading?: boolean;
-  onJobActionsUpdate?: (actions: string[]) => void;
+  isLoading: boolean;
+  onJobActionsUpdate: (actions: string[]) => void;
 }
 
 export function DreamLensEditor({ 
   onSubmit, 
-  initialState, 
-  openAIKey, 
+  initialState,
+  openAIKey,
   isLoading,
-  onJobActionsUpdate 
+  onJobActionsUpdate
 }: DreamLensEditorProps) {
   const [customText, setCustomText] = useState(initialState.customText);
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>(initialState.selectedOptions);
@@ -25,27 +25,9 @@ export function DreamLensEditor({
   const [isLoadingActions, setIsLoadingActions] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load initial job actions if they exist
-  useEffect(() => {
-    if (initialState.jobTitle && initialState.jobActions?.length > 0) {
-      setJobTitle(initialState.jobTitle);
-      setJobActions(initialState.jobActions);
-      
-      // Set selected options based on initial suggestions
-      const newSelectedOptions: SelectedOptions = { custom: false };
-      initialState.suggestions.forEach(suggestion => {
-        const index = initialState.jobActions.indexOf(suggestion);
-        if (index !== -1) {
-          newSelectedOptions[`action${index}`] = true;
-        }
-      });
-      setSelectedOptions(newSelectedOptions);
-    }
-  }, [initialState]);
-
   const handleJobTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (value.length <= 10) {
+    if (value.length <= 20) {
       setJobTitle(value);
       setJobActions([]);
       setSelectedOptions({});
@@ -75,12 +57,11 @@ export function DreamLensEditor({
     setError(null);
 
     try {
-      const response = await generateJobActions(jobTitle, openAIKey);
-      const newActions = response.actions;
-      setJobActions(newActions);
+      const result = await generateJobActions(jobTitle, openAIKey);
+      setJobActions(result.actions);
+      onJobActionsUpdate(result.actions);
       setSelectedOptions({});
       setCustomText('');
-      onJobActionsUpdate?.(newActions);
     } catch (err) {
       console.error("Error fetching job actions:", err);
       setError(err instanceof Error ? err.message : '직업 행동을 가져오는데 실패했습니다.');
@@ -104,7 +85,7 @@ export function DreamLensEditor({
       .filter(action => action);
 
     if (selectedActions.length === 0) {
-      alert("최소한 하나의 행동을 선택해주세요.");
+      setError("최소한 하나의 행동을 선택해주세요.");
       return;
     }
 
@@ -128,15 +109,15 @@ export function DreamLensEditor({
             value={jobTitle}
             onChange={handleJobTitleChange}
             onKeyDown={handleKeyDown}
-            maxLength={10}
-            className="w-32 border-b-2 border-gray-300 focus:border-blue-500 outline-none px-2 py-1 text-center"
+            maxLength={20}
+            className="w-48 border-b-2 border-gray-300 focus:border-indigo-500 outline-none px-2 py-1 text-center"
             placeholder="직업 입력"
           />
           <button
             type="button"
             onClick={fetchJobActions}
             disabled={isLoadingActions || !jobTitle.trim()}
-            className="bg-blue-500 text-white px-4 py-1.5 rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 disabled:bg-blue-300"
+            className="bg-indigo-500 text-white px-4 py-1.5 rounded-lg hover:bg-indigo-600 transition-colors flex items-center gap-2 disabled:bg-indigo-300"
           >
             {isLoadingActions ? (
               <Loader2 className="animate-spin" size={16} />
@@ -174,7 +155,7 @@ export function DreamLensEditor({
                 className={`w-5 h-5 border-2 rounded flex items-center justify-center
                 ${
                   selectedOptions[`action${index}`]
-                    ? "bg-blue-500 border-blue-500"
+                    ? "bg-indigo-500 border-indigo-500"
                     : "border-gray-300"
                 }`}
               >
@@ -203,7 +184,7 @@ export function DreamLensEditor({
                 className={`w-5 h-5 border-2 rounded flex items-center justify-center
                 ${
                   selectedOptions.custom
-                    ? "bg-blue-500 border-blue-500"
+                    ? "bg-indigo-500 border-indigo-500"
                     : "border-gray-300"
                 }`}
               >
@@ -220,7 +201,7 @@ export function DreamLensEditor({
                 onChange={(e) => setCustomText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="직업과 관련된 행동을 입력해주세요"
-                className="ml-9 w-full border-2 border-gray-300 rounded p-2 text-sm focus:border-blue-500 outline-none"
+                className="ml-9 w-full border-2 border-gray-300 rounded p-2 text-sm focus:border-indigo-500 outline-none"
               />
             )}
           </div>
@@ -231,7 +212,7 @@ export function DreamLensEditor({
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-blue-500 text-white rounded-lg py-3 px-4 hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2 disabled:bg-blue-300"
+          className="w-full bg-indigo-500 text-white rounded-lg py-3 px-4 hover:bg-indigo-600 transition-colors flex items-center justify-center space-x-2 disabled:bg-indigo-300"
         >
           {isLoading ? (
             <>
@@ -240,7 +221,7 @@ export function DreamLensEditor({
             </>
           ) : (
             <>
-              <Sparkles size={20} />
+              <Wand size={20} />
               <span>Create DreamLens</span>
             </>
           )}
