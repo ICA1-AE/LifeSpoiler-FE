@@ -12,6 +12,8 @@ interface PixStoryEditorProps {
   onImageSelect: (index: number) => void;
   onSave: (data: { genre: string }) => void;
   isLoading: boolean;
+  isGeneratingStory: boolean;
+  progress?: { current: number; total: number } | null;
   error: string | null;
 }
 
@@ -24,9 +26,22 @@ function PixStoryEditor({
   onImageSelect,
   onSave,
   isLoading,
+  isGeneratingStory,
+  progress,
   error,
 }: PixStoryEditorProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const getLoadingText = () => {
+    if (!isLoading) return null;
+    if (progress) {
+      return `이미지에서 정보를 추출 중 (${progress.current}/${progress.total})`;
+    }
+    if (isGeneratingStory) {
+      return '스토리를 생성 중...';
+    }
+    return 'Processing...';
+  };
 
   return (
     <div className="space-y-8">
@@ -41,7 +56,7 @@ function PixStoryEditor({
             {isLoading ? (
               <>
                 <Loader2 size={20} className="animate-spin" />
-                Generating Story...
+                {getLoadingText()}
               </>
             ) : (
               <>

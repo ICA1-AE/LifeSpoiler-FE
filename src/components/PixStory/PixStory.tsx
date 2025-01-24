@@ -4,6 +4,7 @@ import PixStoryEditor from "./PixStoryEditor";
 import PixStoryViewer from "./PixStoryViewer";
 import { openAIKeyState, userNameState } from '../../store/atoms';
 import { generateImageCaption, generatePixStoryNovel } from '../../utils/openai';
+import { processInParallelWithRateLimit } from '../../utils/async';
 import type { FormData, PixStoryData } from "./types";
 
 interface PixStoryProps {
@@ -32,6 +33,8 @@ function PixStory({
     novel: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingStory, setIsGeneratingStory] = useState(false);
+  const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const openAIKey = useRecoilValue(openAIKeyState);
   const userName = useRecoilValue(userNameState);
@@ -54,20 +57,35 @@ function PixStory({
 
     setIsLoading(true);
     setError(null);
+    setProgress({ current: 0, total: images.length });
 
     try {
-      // Generate captions for each image
-      const captions: { [key: number]: string } = {};
-      for (let i = 0; i < images.length; i++) {
-        try {
-          const caption = await generateImageCaption(images[i], openAIKey);
-          captions[i] = caption;
-          console.log(`Caption generated for image ${i + 1}:`, caption);
-        } catch (err) {
-          console.error(`Error generating caption for image ${i + 1}:`, err);
-          throw new Error(`이미지 ${i + 1}의 캡션 생성에 실패했습니다. ${err instanceof Error ? err.message : ''}`);
-        }
-      }
+      // Generate captions for all images in parallel with rate limiting
+      const captionResults = await processInParallelWithRateLimit(
+        images,
+        async (image, index) => {
+          try {
+            const caption = await generateImageCaption(image, openAIKey);
+            console.log(`Caption generated for image ${index + 1}:`, caption);
+            setProgress(prev => prev ? { ...prev, current: prev.current + 1 } : null);
+            return { index, caption };
+          } catch (err) {
+            console.error(`Error generating caption for image ${index + 1}:`, err);
+            throw new Error(`이미지 ${index + 1}의 캡션 생성에 실패했습니다. ${err instanceof Error ? err.message : ''}`);
+          }
+        },
+        300 // 300ms minimum delay between API calls
+      );
+
+      // Convert results to captions object
+      const captions = captionResults.reduce((acc, { index, caption }) => {
+        acc[index] = caption;
+        return acc;
+      }, {} as { [key: number]: string });
+
+      // Switch to story generation state
+      setProgress(null);
+      setIsGeneratingStory(true);
 
       // Generate novel using captions
       try {
@@ -98,6 +116,8 @@ function PixStory({
       setError(err instanceof Error ? err.message : "스토리 생성 중 오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
       setIsLoading(false);
+      setIsGeneratingStory(false);
+      setProgress(null);
     }
   };
 
@@ -115,6 +135,8 @@ function PixStory({
       onImageSelect={setSelectedImageIndex}
       onSave={handleCreatePixstory}
       isLoading={isLoading}
+      isGeneratingStory={isGeneratingStory}
+      progress={progress}
       error={error}
     />
   ) : (

@@ -1,7 +1,34 @@
-import React, { useState } from "react";
-import { Check, Loader2, Search, Wand } from "lucide-react";
+import React, { useState } from 'react';
+import { Check, Loader2, Search, Wand, AlertCircle } from 'lucide-react';
 import { FormData, SelectedOptions, EditorState } from "./types";
 import { generateJobActions } from "../../utils/openai";
+
+interface ValidationPopupProps {
+  message: string;
+  onClose: () => void;
+}
+
+function ValidationPopup({ message, onClose }: ValidationPopupProps) {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg w-full max-w-sm p-6 relative">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="text-red-500 shrink-0 mt-0.5" size={20} />
+          <div className="flex-1">
+            <h3 className="font-medium text-gray-900 mb-2">입력이 필요합니다</h3>
+            <p className="text-gray-600">{message}</p>
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="mt-4 w-full bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
+        >
+          확인
+        </button>
+      </div>
+    </div>
+  );
+}
 
 interface DreamLensEditorProps {
   onSubmit: (data: FormData) => void;
@@ -9,14 +36,18 @@ interface DreamLensEditorProps {
   openAIKey: string;
   isLoading: boolean;
   onJobActionsUpdate: (actions: string[]) => void;
+  userName: string | null;
+  progress?: { current: number; total: number } | null;
 }
 
-export function DreamLensEditor({ 
+function DreamLensEditor({ 
   onSubmit, 
   initialState,
   openAIKey,
   isLoading,
-  onJobActionsUpdate
+  onJobActionsUpdate,
+  userName,
+  progress
 }: DreamLensEditorProps) {
   const [customText, setCustomText] = useState(initialState.customText);
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>(initialState.selectedOptions);
@@ -24,6 +55,7 @@ export function DreamLensEditor({
   const [jobActions, setJobActions] = useState<string[]>(initialState.jobActions || []);
   const [isLoadingActions, setIsLoadingActions] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
 
   const handleJobTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -43,6 +75,11 @@ export function DreamLensEditor({
   };
 
   const fetchJobActions = async () => {
+    if (!userName) {
+      setValidationMessage('사용자 이름을 먼저 설정해주세요.');
+      return;
+    }
+
     if (!jobTitle.trim()) {
       setError('직업을 입력해주세요.');
       return;
@@ -73,6 +110,11 @@ export function DreamLensEditor({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
+    if (!userName) {
+      setValidationMessage('사용자 이름을 먼저 설정해주세요.');
+      return;
+    }
+
     const selectedActions = Object.entries(selectedOptions)
       .filter(([_, value]) => value)
       .map(([key]) => {
@@ -217,7 +259,11 @@ export function DreamLensEditor({
           {isLoading ? (
             <>
               <Loader2 size={20} className="animate-spin" />
-              <span>Creating DreamLens...</span>
+              <span>
+                {progress 
+                  ? `Creating DreamLens (${progress.current}/${progress.total})`
+                  : 'Creating DreamLens...'}
+              </span>
             </>
           ) : (
             <>
@@ -227,6 +273,15 @@ export function DreamLensEditor({
           )}
         </button>
       )}
+
+      {validationMessage && (
+        <ValidationPopup 
+          message={validationMessage} 
+          onClose={() => setValidationMessage(null)} 
+        />
+      )}
     </form>
   );
 }
+
+export default DreamLensEditor;

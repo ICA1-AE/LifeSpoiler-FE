@@ -1,13 +1,12 @@
 import React, { useState } from "react";
-import { Clapperboard, BookOpen, Wand } from "lucide-react";
+import { Clapperboard, BookOpen, Wand, Menu, X } from "lucide-react";
 import { RecoilRoot } from 'recoil';
 import PixStory from "./components/PixStory";
 import DreamLens from "./components/DreamLens";
 import { Intro } from "./components/Intro";
-import ImageInterpolation from "./components/FlipBook/ImageInterplation";
 import { APIKeyManager } from "./components/Sidebar/APIKeyManager";
 
-type Service = "intro" | "pixstory" | "dreamlens" | "flipbook";
+type Service = "intro" | "pixstory" | "dreamlens";
 type Tab = "pixstory" | "dreamlens";
 
 function App() {
@@ -15,6 +14,7 @@ function App() {
   const [currentView, setCurrentView] = useState<Service>("intro");
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("pixstory");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const handleImageUpload = (newImage: string) => {
     setImages((prev) => [...prev, newImage]);
@@ -31,6 +31,10 @@ function App() {
   const handleStartStory = () => {
     setIsEditing(true);
     setCurrentView(activeTab);
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
   const renderContent = () => {
@@ -61,8 +65,14 @@ function App() {
   return (
     <RecoilRoot>
       <div className="min-h-screen bg-gray-50">
-        <header className="fixed top-0 left-0 right-0 bg-white shadow-sm z-10">
-          <div className="h-16 flex items-center justify-center">
+        <header className="fixed top-0 left-0 right-0 bg-white shadow-sm z-10"> {/* z-index 수정 */}
+          <div className="h-16 flex items-center px-4">
+            <button
+              onClick={toggleSidebar}
+              className="mr-4 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
             <button
               onClick={() => {
                 setCurrentView("intro");
@@ -83,13 +93,21 @@ function App() {
           </div>
         </header>
 
-        <nav className="fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white shadow-lg w-[240px] flex flex-col">
+        <nav 
+          className={`
+            fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white shadow-lg z-20
+            transition-all duration-300 ease-in-out
+            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+            w-full sm:w-[320px]
+          `}
+        >
           <div className="flex-1 py-8 px-4">
             <div className="space-y-2">
               <button
                 onClick={() => {
                   setActiveTab("pixstory");
                   setCurrentView("intro");
+                  if (window.innerWidth < 640) setIsSidebarOpen(false);
                 }}
                 className={`
                   w-full flex items-center gap-3 px-4 py-3 rounded-lg
@@ -111,6 +129,7 @@ function App() {
                 onClick={() => {
                   setActiveTab("dreamlens");
                   setCurrentView("intro");
+                  if (window.innerWidth < 640) setIsSidebarOpen(false);
                 }}
                 className={`
                   w-full flex items-center gap-3 px-4 py-3 rounded-lg
@@ -133,11 +152,25 @@ function App() {
           <APIKeyManager />
         </nav>
 
-        <main className="ml-[240px] pt-24 px-8 py-8">
+        <main 
+          className={`
+            transition-all duration-300 ease-in-out
+            ${isSidebarOpen ? 'sm:ml-[320px]' : 'ml-0'}
+            pt-24 px-4 sm:px-8 py-8
+          `}
+        >
           <div className="max-w-[1200px] mx-auto">
             {renderContent()}
           </div>
         </main>
+
+        {/* Overlay for mobile */}
+        {isSidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/20 z-[5] sm:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
       </div>
     </RecoilRoot>
   );

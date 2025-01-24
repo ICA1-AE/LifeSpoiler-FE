@@ -27,8 +27,15 @@ export interface StoryResponse {
   story: string;
 }
 
+export interface DreamLensImage {
+  url: string;
+  revisedPrompt: string;
+}
+
 export interface DreamLensData {
   userName: string;
   jobTitle: string;
+  selectedActions: string[];
+  images: DreamLensImage[];
   story: string;
 }
